@@ -8,13 +8,13 @@ tk.set_default_color_theme('blue')
 window = tk.CTk()
 df = pd.DataFrame
 # config window frame
-window.minsize(width=1080,height=720)
+window.minsize(width=1280,height=720)
 window.title('Predict MaketPlace')
 
 
 frame_input = tk.CTkFrame(master=window)
 # Show data_name choise
-input_name = tk.CTkLabel(master=window,height=20,width=200,text='')
+input_name = tk.CTkLabel(master=frame_input,height=20,width=200,text='')
 input_name.pack()
 def file_input():
     global df
@@ -32,6 +32,7 @@ def file_input():
     # Show header
     for col in table['column']:
         table.heading(col,text=col)
+        table.column(col,width=100,stretch= True)
     # Show data
     df_rows = df.to_numpy().tolist()
     for row in df_rows:
@@ -46,22 +47,32 @@ input_button.pack()
 
 # Data Table
 
-table = ttk.Treeview(window,show= '')
+table = ttk.Treeview(frame_input)
+# vertical scrollbar
 
+vsb = ttk.Scrollbar(frame_input, orient="vertical", command=table.yview)
+vsb.pack(side='right', fill='y')
+
+# Table style
 table_style = ttk.Style()
 table_style.theme_use('default')
 
+
+# - for row below heading
 table_style.configure("Treeview",
                       background = '#374a6b',
                       foreground= 'black',
                       fieldbackground='#374a6b')
+
+# - for heading
 table_style.configure("Treeview.Heading",
                       background='#162236',
                       foreground='black',
                       fieldbackground='#162236')
-
-table.pack()
-
+table.configure(yscrollcommand=vsb.set)
+# #162236
+table.pack(expand=True)
+frame_input.pack()
 
 
 window.mainloop()
