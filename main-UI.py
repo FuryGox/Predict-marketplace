@@ -31,10 +31,10 @@ def to_list2D(data):
     return d
 
 def replace_comma(df):
-    df["Price"] = df["Price"].str.replace(',', '')
-    df["Open"] = df["Open"].str.replace(',', '')
-    df["High"] = df["High"].str.replace(',', '')
-    df["Low"] = df["Low"].str.replace(',', '')
+    df["Price"] = df["Price"].str.replace(',', '').astype(float).fillna(0.0)
+    df["Open"] = df["Open"].str.replace(',', '').astype(float).fillna(0.0)
+    df["High"] = df["High"].str.replace(',', '').astype(float).fillna(0.0)
+    df["Low"] = df["Low"].str.replace(',', '').astype(float).fillna(0.0)
     vol = []
     for i in df["Vol."]:
         vol.append(convert_M(i))
@@ -78,6 +78,7 @@ def file_input():
     for row in df_rows:
         table.insert("","end", values=row)
 
+    # Editing data
     try:
         df = replace_comma(df)
     except Exception:
@@ -121,8 +122,6 @@ table.pack(expand=True)
 frame_input.pack()
 def show_input_plot(df):
 
-
-    df['Open'] = df['Open'].astype(float).fillna(0.0)
     values = df['Open'].tolist()
 
     figure = plt.Figure(figsize=(6, 4), dpi=100)
