@@ -3,17 +3,18 @@ from tkinter import ttk, filedialog, messagebox
 import customtkinter as tk
 import pandas as pd
 import matplotlib.pyplot as plt
-import matplotlib.dates as mpl_dates
-import mplfinance as mpl
+import matplotlib.dates as mdates
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg,NavigationToolbar2Tk
-import plotly.graph_objects as go
+import plotly.graph_objects  as plot
 import numpy as np
+from PIL import Image
 
-
+# Set appearance
 tk.set_appearance_mode('dark')
 tk.set_default_color_theme('blue')
 
-def convert_M(x):
+# Covert mark M ,K ,B
+def convert_mark(x):
     if x.endswith("M"):
         x = x.replace("M",' ')
         x = float(x) * 1000000
@@ -28,21 +29,23 @@ def convert_M(x):
         return x
     else:
         return x
-def to_list2D(data):
+def to_list2d(data):
     d = []
     for i in data:
         d.append(i[0])
     return d
 
 def replace_comma(df):
+    vol = []
+    for i in df["Vol."]:
+        vol.append(convert_mark(i))
+    df["Vol."] = vol
     df["Price"] = df["Price"].str.replace(',', '').astype(float).fillna(0.0)
     df["Open"] = df["Open"].str.replace(',', '').astype(float).fillna(0.0)
     df["High"] = df["High"].str.replace(',', '').astype(float).fillna(0.0)
     df["Low"] = df["Low"].str.replace(',', '').astype(float).fillna(0.0)
-    vol = []
-    for i in df["Vol."]:
-        vol.append(convert_M(i))
-    df["Vol."] = vol
+
+
     return df
 
 
@@ -51,23 +54,45 @@ def replace_comma(df):
 # init window frame
 window = tk.CTk()
 df = pd.DataFrame
+name = ''
+
 # config window frame
 window.minsize(width=1280,height=720)
 window.title('Predict MaketPlace')
 
+# cofig window grid
+window.columnconfigure(0,weight=1)
+window.columnconfigure(1,weight=2)
 
+# frame input
 frame_input = tk.CTkFrame(master=window)
+
+label_name = tk.CTkLabel(master=frame_input,text="Name of financial ")
+label_name.pack()
+
+input_label_name = tk.CTkTextbox(master=frame_input)
+input_label_name.pack()
+
+frame_input.grid(row=1,column=0)
+
+
+# frame data
+frame_data = tk.CTkFrame(master=window,width= np.floor(window.winfo_screenwidth()*(2/3)),height=280)
+
 # Show data_name choise
-input_name = tk.CTkLabel(master=frame_input,height=20,width=200,text='')
+input_name = tk.CTkLabel(master=frame_data,height=20,width=200,text='')
 input_name.pack()
+
+# command for reading file csv
 def file_input():
     global df
+    global name
     name = filedialog.askopenfilename(title='Select csv file',filetypes=[('comma-separated values', '*.csv')])
     input_name.configure(text=name)
 
     # Try to open file
     try:
-        df = pd.read_csv(name,date_parser = pd.to_datetime).dropna()
+        df = pd.read_csv(name, date_parser = True).dropna()
     except Exception as e:
         messagebox.showerror("Something wrong ! ",str(e))
     # Get header
@@ -76,7 +101,7 @@ def file_input():
     # Show header
     for col in table['column']:
         table.heading(col,text=col)
-        table.column(col,width=100,stretch= True)
+        table.column(col,width=100,anchor=tk.CENTER, stretch=True)
     # Show data
     df_rows = df.to_numpy().tolist()
     for row in df_rows:
@@ -89,75 +114,126 @@ def file_input():
         print(Exception)
 
 
-input_button = tk.CTkButton(master=frame_input,text = 'Open file',
+# Read csv file button
+input_button = tk.CTkButton(master=frame_data,text = 'Open file',
                             command=lambda :file_input(),
                             width=100,height=25,
                             corner_radius=5,
                             fg_color='#336fd6',hover_color='#0a1f42')
 input_button.pack()
 
-# Data Table
 
-table = ttk.Treeview(frame_input)
+# Data Table for view data
+table = ttk.Treeview(frame_data)
+
 # vertical scrollbar
-
-vsb = ttk.Scrollbar(frame_input, orient="vertical", command=table.yview)
+vsb = ttk.Scrollbar(frame_data, orient="vertical", command=table.yview)
 vsb.pack(side='right', fill='y')
 
 # Table style
 table_style = ttk.Style()
 table_style.theme_use('default')
-
-
 # - for row below heading
 table_style.configure("Treeview",
                       background = '#374a6b',
                       foreground= 'black',
                       fieldbackground='#374a6b')
-
 # - for heading
 table_style.configure("Treeview.Heading",
                       background='#162236',
                       foreground='black',
                       fieldbackground='#162236')
+# Set scrollbar for table
 table.configure(yscrollcommand=vsb.set)
-# #162236
-table.pack(expand=True)
-frame_input.pack()
-def show_input_plot(df):
-    figure = plt.Figure(figsize=(10, 6), dpi=100)
+
+table.pack(fill='both',expand=False)
+
+# Config for table not interupt width of grid column
+frame_data.pack_propagate(0)
+frame_data.grid(row=1,column=1)
+
+def show_input_plot_interactive(df):
+    fig = plot.Figure(data=[plot.Candlestick(x=df['Date'],
+                                            open=df['Open'],
+                                            high=df['High'],
+                                            low=df['Low'],
+                                            close=df['Price']
+    )])
+    fig.update_layout(xaxis_rangeslider_visible=False)
+    fig.show()
+    """
+    figure = plt.Figure(figsize=(10, 4), dpi=100)
+    st = figure.suptitle("suptitle", fontsize="x-large")
     df['Date'] = pd.to_datetime(df['Date'])
+
     # Plot for ['Open'] values
-    ax1 = figure.add_subplot(221)
+    ax1 = figure.add_subplot(141)
     ax1.plot(df['Date'],df['Open'].tolist(), color = '#1bd152')
+    ax1.set_title('ax1')
 
     # Plot for ['Price'] values
-    ax2 = figure.add_subplot(222)
+    ax2 = figure.add_subplot(142)
     ax2.plot(df['Date'],df['Price'].tolist(),color= '#1f13f2')
+    ax2.set_title('ax2')
 
     # Plot for ['High'] values
-    ax3 = figure.add_subplot(223)
+    ax3 = figure.add_subplot(143)
     ax3.plot(df['Date'],df['High'].tolist(),color = '#db8b2a')
+    ax3.set_title('ax3')
 
     # Plot for ['Low'] values
-    ax4 = figure.add_subplot(224)
+    ax4 = figure.add_subplot(144)
     ax4.plot(df['Date'],df['Low'].tolist(), color = '#222fe3')
+    ax4.set_title('ax4')
 
+    st.set_y(0.95)
+    figure.tight_layout()
+    figure.subplots_adjust(top=0.85)
     scatter3 = FigureCanvasTkAgg(figure, frame_display)
     scatter3.draw()
-    scatter3.get_tk_widget().pack()
+    scatter3.get_tk_widget().pack(fill='x')
     toolbar = NavigationToolbar2Tk(scatter3,frame_display)
     toolbar.update()
     scatter3.get_tk_widget().pack()
-
+    """
 
 frame_display = tk.CTkFrame(master=window)
-show_plot = tk.CTkButton(master=frame_display, text='Show plot', command=lambda :show_input_plot(df),
+frame_display.columnconfigure(0,weight=1)
+frame_display.columnconfigure(1,weight=1)
+show_plot = tk.CTkButton(master=frame_display, text='Show plot in browser (interactive)', command=lambda :show_input_plot_interactive(df),
                         width=100,height=25,
                         corner_radius=5,
                         fg_color='#336fd6',hover_color='#0a1f42')
-show_plot.pack()
-frame_display.pack()
+show_plot.grid(row=0,column=0)
+
+img = tk.CTkImage(light_image=Image.open('base.jpeg'))
+img_label = tk.CTkLabel(master=frame_display, text="", image=img)
+img_label.configure(width=1280,height=480)
+def show_input_plot_img(df):
+    fig = plot.Figure(data=[plot.Candlestick(x=df['Date'],
+                                             open=df['Open'],
+                                             high=df['High'],
+                                             low=df['Low'],
+                                             close=df['Price']
+                                             )])
+    fig.update_layout(xaxis_rangeslider_visible=False)
+
+    fig.write_image('fig.jpeg')
+    global img
+    img = tk.CTkImage(light_image=Image.open('fig.jpeg'),size=(700, 500))
+    img_label.configure(image=img)
+    img_label.image = img
+
+show_plot_img = tk.CTkButton(master=frame_display, text='Show plot in this window (static image)', command=lambda :show_input_plot_img(df),
+                        width=100,height=25,
+                        corner_radius=5,
+                        fg_color='#336fd6',hover_color='#0a1f42')
+show_plot_img.grid(row=0,column=1)
+
+
+img_label.grid(row=1,column=0,columnspan=2)
+
+frame_display.grid(row=2,sticky='EW',columnspan = 2)
 
 
 
