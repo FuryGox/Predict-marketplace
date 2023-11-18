@@ -1,9 +1,13 @@
+import datetime
 from tkinter import ttk, filedialog, messagebox
 import customtkinter as tk
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib.dates as mpl_dates
+import mplfinance as mpl
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg,NavigationToolbar2Tk
-
+import plotly.graph_objects as go
+import numpy as np
 
 
 tk.set_appearance_mode('dark')
@@ -63,7 +67,7 @@ def file_input():
 
     # Try to open file
     try:
-        df = pd.read_csv(name).dropna()
+        df = pd.read_csv(name,date_parser = pd.to_datetime).dropna()
     except Exception as e:
         messagebox.showerror("Something wrong ! ",str(e))
     # Get header
@@ -85,7 +89,7 @@ def file_input():
         print(Exception)
 
 
-input_button = tk.CTkButton(master=window,text = 'Open file',
+input_button = tk.CTkButton(master=frame_input,text = 'Open file',
                             command=lambda :file_input(),
                             width=100,height=25,
                             corner_radius=5,
@@ -121,21 +125,30 @@ table.configure(yscrollcommand=vsb.set)
 table.pack(expand=True)
 frame_input.pack()
 def show_input_plot(df):
+    figure = plt.Figure(figsize=(10, 6), dpi=100)
+    df['Date'] = pd.to_datetime(df['Date'])
+    # Plot for ['Open'] values
+    ax1 = figure.add_subplot(221)
+    ax1.plot(df['Date'],df['Open'].tolist(), color = '#1bd152')
 
-    values = df['Open'].tolist()
+    # Plot for ['Price'] values
+    ax2 = figure.add_subplot(222)
+    ax2.plot(df['Date'],df['Price'].tolist(),color= '#1f13f2')
 
-    figure = plt.Figure(figsize=(6, 4), dpi=100)
-    ax = figure.add_subplot(111)
-    ax.plot(values)
+    # Plot for ['High'] values
+    ax3 = figure.add_subplot(223)
+    ax3.plot(df['Date'],df['High'].tolist(),color = '#db8b2a')
+
+    # Plot for ['Low'] values
+    ax4 = figure.add_subplot(224)
+    ax4.plot(df['Date'],df['Low'].tolist(), color = '#222fe3')
 
     scatter3 = FigureCanvasTkAgg(figure, frame_display)
     scatter3.draw()
     scatter3.get_tk_widget().pack()
-    toolbar = NavigationToolbar2Tk(scatter3,
-                                   frame_display)
+    toolbar = NavigationToolbar2Tk(scatter3,frame_display)
     toolbar.update()
     scatter3.get_tk_widget().pack()
-
 
 
 frame_display = tk.CTkFrame(master=window)
