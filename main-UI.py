@@ -1,16 +1,14 @@
-from datetime import datetime
 from tkinter import ttk, filedialog, messagebox,Tk
 import customtkinter as tk
 import pandas as pd
-import calendar
 import investiny as inv
-
 import plotly.graph_objects  as plot
 import numpy as np
 from PIL import Image
+from tkcalendar import DateEntry
 
 # Set appearance
-from tkcalendar import DateEntry
+
 
 tk.set_appearance_mode('dark')
 tk.set_default_color_theme('blue')
