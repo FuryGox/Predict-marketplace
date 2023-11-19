@@ -1,15 +1,17 @@
-import datetime
-from tkinter import ttk, filedialog, messagebox
+from datetime import datetime
+from tkinter import ttk, filedialog, messagebox,Tk
 import customtkinter as tk
 import pandas as pd
-import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg,NavigationToolbar2Tk
+import calendar
+import investiny as inv
+
 import plotly.graph_objects  as plot
 import numpy as np
 from PIL import Image
 
 # Set appearance
+from tkcalendar import DateEntry
+
 tk.set_appearance_mode('dark')
 tk.set_default_color_theme('blue')
 
@@ -67,17 +69,45 @@ window.columnconfigure(1,weight=2)
 # frame input
 frame_input = tk.CTkFrame(master=window)
 
-label_name = tk.CTkLabel(master=frame_input,text="Name of financial ")
+label_name = tk.CTkLabel(master=frame_input,text="ID")
 label_name.pack()
 
-input_label_name = tk.CTkTextbox(master=frame_input)
+input_label_name = tk.CTkTextbox(master=frame_input,height=20)
 input_label_name.pack()
 
+
+cal_start = DateEntry(frame_input, width=12, year=2019, month=6, day=22,
+background='darkblue', foreground='white', borderwidth=2)
+cal_start.pack(padx=10, pady=10)
+
+cal_end = DateEntry(frame_input, width=12, year=2022, month=1, day=1,
+background='darkblue', foreground='white', borderwidth=2)
+cal_end.pack(padx=10, pady=10)
+output_resurt = tk.CTkLabel(master=frame_input,text='Watting..')
+
+
+date_start = cal_start.get_date()
+date_end = cal_end.get_date()
+def get_date_from_cal():
+    global date_start,date_end,df
+    date_start = date_start.strftime("%m/%d/%Y")
+    date_end = date_end.strftime("%m/%d/%Y")
+    try:
+        df = inv.historical_data(investing_id=input_label_name.get(1.0, "end-1c"),from_date=date_start,to_date=date_end)
+        output_resurt.configure(text="Get data success.", text_color='#21ed28')
+    except Exception as e:
+        output_resurt.configure(text = ("Get data failure. " + str(e)),text_color='#e8132b' )
+    show_table()
+
+
+ik = tk.CTkButton(master=frame_input,text="Get Data", command= lambda :get_date_from_cal())
+ik.pack()
+output_resurt.pack()
 frame_input.grid(row=1,column=0)
 
 
 # frame data
-frame_data = tk.CTkFrame(master=window,width= np.floor(window.winfo_screenwidth()*(2/3)),height=280)
+frame_data = tk.CTkFrame(master=window,width= np.floor(window.winfo_screenwidth()*(2/5)),height=280)
 
 # Show data_name choise
 input_name = tk.CTkLabel(master=frame_data,height=20,width=200,text='')
@@ -85,8 +115,7 @@ input_name.pack()
 
 # command for reading file csv
 def file_input():
-    global df
-    global name
+    global df,name
     name = filedialog.askopenfilename(title='Select csv file',filetypes=[('comma-separated values', '*.csv')])
     input_name.configure(text=name)
 
@@ -95,6 +124,10 @@ def file_input():
         df = pd.read_csv(name, date_parser = True).dropna()
     except Exception as e:
         messagebox.showerror("Something wrong ! ",str(e))
+    show_table()
+
+def show_table():
+    global df
     # Get header
     table['column'] = list(df.columns)
     table['show'] = 'headings'
@@ -112,7 +145,8 @@ def file_input():
         df = replace_comma(df)
     except Exception:
         print(Exception)
-
+    df['Date'] = df['Date'].astype('datetime64[ns]')
+    df = df.sort_values(by='Date', ascending=True)
 
 # Read csv file button
 input_button = tk.CTkButton(master=frame_data,text = 'Open file',
@@ -158,8 +192,11 @@ def show_input_plot_interactive(df):
                                             high=df['High'],
                                             low=df['Low'],
                                             close=df['Price']
-    )])
-    fig.update_layout(xaxis_rangeslider_visible=False)
+    ),
+                            plot.Line(x = df['Date'],
+                                      y = df['Price'],
+                                      line=dict(color='#41cdf0'))])
+    fig.update_layout(xaxis_rangeslider_visible=False,title_text = "")
     fig.show()
     """
     figure = plt.Figure(figsize=(10, 4), dpi=100)
@@ -201,12 +238,13 @@ frame_display = tk.CTkFrame(master=window)
 frame_display.columnconfigure(0,weight=1)
 frame_display.columnconfigure(1,weight=1)
 show_plot = tk.CTkButton(master=frame_display, text='Show plot in browser (interactive)', command=lambda :show_input_plot_interactive(df),
-                        width=100,height=25,
-                        corner_radius=5,
-                        fg_color='#336fd6',hover_color='#0a1f42')
+                            width=100,height=25,
+                            corner_radius=5,
+                            fg_color='#336fd6',
+                            hover_color='#0a1f42')
 show_plot.grid(row=0,column=0)
 
-img = tk.CTkImage(light_image=Image.open('base.jpeg'))
+img = tk.CTkImage(light_image=Image.open('base.jpeg'),size=(700,500))
 img_label = tk.CTkLabel(master=frame_display, text="", image=img)
 img_label.configure(width=1280,height=480)
 def show_input_plot_img(df):
@@ -225,9 +263,10 @@ def show_input_plot_img(df):
     img_label.image = img
 
 show_plot_img = tk.CTkButton(master=frame_display, text='Show plot in this window (static image)', command=lambda :show_input_plot_img(df),
-                        width=100,height=25,
-                        corner_radius=5,
-                        fg_color='#336fd6',hover_color='#0a1f42')
+                                width=100,height=25,
+                                corner_radius=5,
+                                fg_color='#336fd6',
+                                hover_color='#0a1f42')
 show_plot_img.grid(row=0,column=1)
 
 
