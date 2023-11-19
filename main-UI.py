@@ -187,17 +187,20 @@ frame_data.pack_propagate(0)
 frame_data.grid(row=1,column=1)
 
 def show_input_plot_interactive(df):
-    fig = plot.Figure(data=[plot.Candlestick(x=df['Date'],
-                                            open=df['Open'],
-                                            high=df['High'],
-                                            low=df['Low'],
-                                            close=df['Price']
-    ),
-                            plot.Line(x = df['Date'],
-                                      y = df['Price'],
-                                      line=dict(color='#41cdf0'))])
-    fig.update_layout(xaxis_rangeslider_visible=False,title_text = "")
-    fig.show()
+    try:
+        fig = plot.Figure(data=[plot.Candlestick(x=df['Date'],
+                                                open=df['Open'],
+                                                high=df['High'],
+                                                low=df['Low'],
+                                                close=df['Price']),
+
+                                plot.Line(x = df['Date'],
+                                          y = df['Price'],
+                                          line=dict(color='#41cdf0'))])
+        fig.update_layout(xaxis_rangeslider_visible=False,title_text = "")
+        fig.show()
+    except Exception as e:
+        print(str(e))
     """
     figure = plt.Figure(figsize=(10, 4), dpi=100)
     st = figure.suptitle("suptitle", fontsize="x-large")
@@ -248,19 +251,22 @@ img = tk.CTkImage(light_image=Image.open('base.jpeg'),size=(700,500))
 img_label = tk.CTkLabel(master=frame_display, text="", image=img)
 img_label.configure(width=1280,height=480)
 def show_input_plot_img(df):
-    fig = plot.Figure(data=[plot.Candlestick(x=df['Date'],
-                                             open=df['Open'],
-                                             high=df['High'],
-                                             low=df['Low'],
-                                             close=df['Price']
-                                             )])
-    fig.update_layout(xaxis_rangeslider_visible=False)
+    try:
+        fig = plot.Figure(data=[plot.Candlestick(x=df['Date'],
+                                                 open=df['Open'],
+                                                 high=df['High'],
+                                                 low=df['Low'],
+                                                 close=df['Price']
+                                                 )])
+        fig.update_layout(xaxis_rangeslider_visible=False)
 
-    fig.write_image('fig.jpeg')
-    global img
-    img = tk.CTkImage(light_image=Image.open('fig.jpeg'),size=(700, 500))
-    img_label.configure(image=img)
-    img_label.image = img
+        fig.write_image('fig.jpeg')
+        global img
+        img = tk.CTkImage(light_image=Image.open('fig.jpeg'),size=(700, 500))
+        img_label.configure(image=img)
+        img_label.image = img
+    except Exception as e:
+        print(str(e))
 
 show_plot_img = tk.CTkButton(master=frame_display, text='Show plot in this window (static image)', command=lambda :show_input_plot_img(df),
                                 width=100,height=25,
