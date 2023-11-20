@@ -234,8 +234,11 @@ def show_input_plot_interactive(df):
     toolbar.update()
     scatter3.get_tk_widget().pack()
     """
-
-frame_display = tk.CTkFrame(master=window)
+tab_display = tk.CTkTabview(master=window)
+tab_display.add('Plot')
+tab_display.add('Predict')
+tab_display.set('Plot')
+frame_display = tk.CTkFrame(master=tab_display.tab('Plot'))
 frame_display.columnconfigure(0,weight=1)
 frame_display.columnconfigure(1,weight=1)
 show_plot = tk.CTkButton(master=frame_display, text='Show plot in browser (interactive)', command=lambda :show_input_plot_interactive(df),
@@ -273,11 +276,10 @@ show_plot_img = tk.CTkButton(master=frame_display, text='Show plot in this windo
                                 hover_color='#0a1f42')
 show_plot_img.grid(row=0,column=1)
 
-
 img_label.grid(row=1,column=0,columnspan=2)
 
 frame_display.grid(row=2,sticky='EW',columnspan = 2)
 
-
+tab_display.grid(row=2,sticky='EW',columnspan = 2)
 
 window.mainloop()
