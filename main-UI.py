@@ -141,8 +141,8 @@ def show_table():
     # Editing data
     try:
         df = replace_comma(df)
-    except Exception:
-        print(Exception)
+    except Exception as e:
+        print(e)
     df['Date'] = df['Date'].astype('datetime64[ns]')
     df = df.sort_values(by='Date', ascending=True)
 
