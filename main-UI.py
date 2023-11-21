@@ -184,6 +184,7 @@ table.pack(fill='both',expand=False)
 frame_data.pack_propagate(0)
 frame_data.grid(row=1,column=1)
 
+# Turn data to plot and save as image to show in frame
 def show_input_plot_interactive(df):
     try:
         fig = plot.Figure(data=[plot.Candlestick(x=df['Date'],
@@ -234,13 +235,26 @@ def show_input_plot_interactive(df):
     toolbar.update()
     scatter3.get_tk_widget().pack()
     """
+
+
+# Tab
 tab_display = tk.CTkTabview(master=window)
+
+# Config tab
 tab_display.add('Plot')
 tab_display.add('Predict')
+# Set first tab display
 tab_display.set('Plot')
+
+# Inside tab 'Plot'
+
 frame_display = tk.CTkFrame(master=tab_display.tab('Plot'))
+
+# Prepare grid display
 frame_display.columnconfigure(0,weight=1)
 frame_display.columnconfigure(1,weight=1)
+
+# Button to show plot
 show_plot = tk.CTkButton(master=frame_display, text='Show plot in browser (interactive)', command=lambda :show_input_plot_interactive(df),
                             width=100,height=25,
                             corner_radius=5,
@@ -248,6 +262,7 @@ show_plot = tk.CTkButton(master=frame_display, text='Show plot in browser (inter
                             hover_color='#0a1f42')
 show_plot.grid(row=0,column=0)
 
+# Set first image to show
 img = tk.CTkImage(light_image=Image.open('base.jpeg'),size=(700,500))
 img_label = tk.CTkLabel(master=frame_display, text="", image=img)
 img_label.configure(width=1280,height=480)
@@ -280,6 +295,60 @@ img_label.grid(row=1,column=0,columnspan=2)
 
 frame_display.grid(row=2,sticky='EW',columnspan = 2)
 
-tab_display.grid(row=2,sticky='EW',columnspan = 2)
 
+
+frame_predict = tk.CTkFrame(master=tab_display.tab('Predict'))
+
+optimizer ='adam'
+loss = 'mean_squared_error'
+batch_size = 20
+epochs = 20
+
+optimizer_name = tk.CTkLabel(master=frame_predict,text='Optimizer')
+optimizer_name.pack()
+def get_optimizer(choice):
+    global optimizer
+    optimizer = choice
+
+optimizer_menu = tk.CTkOptionMenu(frame_predict, values=['SGD','RMSprop','Adam',
+                                                  'AdamW','Adadelta','Adagrad',
+                                                  'Adamax','Adafactor','Nadam','Ftrl'],
+                                         command=get_optimizer)
+optimizer_menu.pack()
+
+loss_name = tk.CTkLabel(master=frame_predict,text='Loss')
+loss_name.pack()
+def get_loss(choice):
+    global loss
+    loss = choice
+
+loss_menu = tk.CTkOptionMenu(frame_predict, values=['mean_squared_error','mean_absolute_error',
+                                             'mean_absolute_percentage_error',
+                                             'mean_squared_logarithmic_error'],
+                                         command=get_loss)
+loss_menu.pack()
+def get_batch_size(value):
+    global batch_size
+    batch_size = np.round(value)
+
+batch_size_label = tk.CTkLabel(master=frame_predict,text='batch_size')
+batch_size_label.pack()
+batch_size_slider = tk.CTkSlider(frame_predict, from_=20, to=100, command=get_batch_size)
+batch_size_slider.pack()
+def get_epochs(value):
+    global epochs
+    epochs = np.round(value)
+
+epochs_label = tk.CTkLabel(master=frame_predict,text='epochs')
+epochs_label.pack()
+epochs_slider = tk.CTkSlider(frame_predict, from_=20, to=100, command=get_epochs)
+epochs_slider.pack()
+def out():
+    global loss,optimizer,batch_size,epochs
+    print(loss,optimizer,batch_size,epochs)
+
+t = tk.CTkButton(master=frame_predict,command=lambda :out(),text="hitme")
+t.pack()
+frame_predict.grid(row=2,sticky='EW',columnspan = 2)
+tab_display.grid(row=2,sticky='EW',columnspan = 2)
 window.mainloop()
