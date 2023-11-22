@@ -1,4 +1,4 @@
-from tkinter import ttk, filedialog, messagebox,Tk
+from tkinter import ttk, filedialog, messagebox, Tk, StringVar
 import customtkinter as tk
 import pandas as pd
 import investiny as inv
@@ -298,11 +298,17 @@ frame_display.grid(row=2,sticky='EW',columnspan = 2)
 
 
 frame_predict = tk.CTkFrame(master=tab_display.tab('Predict'))
+frame_predict.columnconfigure(0,weight=1)
+frame_predict.columnconfigure(1,weight=3)
 
 optimizer ='adam'
 loss = 'mean_squared_error'
 batch_size = 20
 epochs = 20
+var_batch = StringVar()
+var_batch.set('Batch_size: '+str(batch_size))
+var_epoch = StringVar()
+var_epoch.set('Epochs: '+ str(epochs))
 
 optimizer_name = tk.CTkLabel(master=frame_predict,text='Optimizer')
 optimizer_name.pack()
@@ -327,19 +333,23 @@ loss_menu = tk.CTkOptionMenu(frame_predict, values=['mean_squared_error','mean_a
                                              'mean_squared_logarithmic_error'],
                                          command=get_loss)
 loss_menu.pack()
+
 def get_batch_size(value):
     global batch_size
     batch_size = np.round(value)
+    var_batch.set('Batch_size '+str(batch_size))
 
-batch_size_label = tk.CTkLabel(master=frame_predict,text='batch_size')
+
+batch_size_label = tk.CTkLabel(master=frame_predict,textvariable=var_batch)
 batch_size_label.pack()
 batch_size_slider = tk.CTkSlider(frame_predict, from_=20, to=100, command=get_batch_size)
 batch_size_slider.pack()
 def get_epochs(value):
     global epochs
     epochs = np.round(value)
+    var_epoch.set('Epochs: '+str(epochs))
 
-epochs_label = tk.CTkLabel(master=frame_predict,text='epochs')
+epochs_label = tk.CTkLabel(master=frame_predict,textvariable=var_epoch)
 epochs_label.pack()
 epochs_slider = tk.CTkSlider(frame_predict, from_=20, to=100, command=get_epochs)
 epochs_slider.pack()
@@ -349,6 +359,7 @@ def out():
 
 t = tk.CTkButton(master=frame_predict,command=lambda :out(),text="hitme")
 t.pack()
+
 frame_predict.grid(row=2,sticky='EW',columnspan = 2)
 tab_display.grid(row=2,sticky='EW',columnspan = 2)
 window.mainloop()

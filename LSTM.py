@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 from keras.models import Sequential
-from keras.layers import Dense, LSTM
+from keras.layers import Dense, LSTM,Dropout
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 df = pd.read_csv('Bitcoin Historical Data.csv',parse_dates=True).dropna()
@@ -82,7 +82,10 @@ X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], X_test.shape[2]))
 
 # Xây dựng mô hình LSTM
 model = Sequential()
-model.add(LSTM(50, input_shape=(X_train.shape[1], X_train.shape[2])))
+model.add(LSTM(50))
+model.add(LSTM(units=30))
+model.add(Dropout(0.2))
+model.add(LSTM(units=10))
 model.add(Dense(1))
 model.compile(optimizer='adam', loss='mean_squared_error')
 
