@@ -8,7 +8,7 @@ from PIL import Image
 from tkcalendar import DateEntry
 
 # Set appearance
-
+import temp
 
 tk.set_appearance_mode('dark')
 tk.set_default_color_theme('blue')
@@ -296,11 +296,13 @@ img_label.grid(row=1,column=0,columnspan=2)
 frame_display.grid(row=2,sticky='EW',columnspan = 2)
 
 
-
+# Inside tab predict
 frame_predict = tk.CTkFrame(master=tab_display.tab('Predict'))
+# config column for grid
 frame_predict.columnconfigure(0,weight=1)
 frame_predict.columnconfigure(1,weight=3)
 
+# define variable
 optimizer ='adam'
 loss = 'mean_squared_error'
 batch_size = 20
@@ -310,43 +312,51 @@ var_batch.set('Batch_size: '+str(batch_size))
 var_epoch = StringVar()
 var_epoch.set('Epochs: '+ str(epochs))
 
+# Label Optimizer
+# Label
 optimizer_name = tk.CTkLabel(master=frame_predict,text='Optimizer')
 optimizer_name.pack()
+# function to get choicen optimizer
 def get_optimizer(choice):
     global optimizer
     optimizer = choice
-
+# Option of optimizer
 optimizer_menu = tk.CTkOptionMenu(frame_predict, values=['SGD','RMSprop','Adam',
                                                   'AdamW','Adadelta','Adagrad',
                                                   'Adamax','Adafactor','Nadam','Ftrl'],
                                          command=get_optimizer)
 optimizer_menu.pack()
 
+# Label Loss function
 loss_name = tk.CTkLabel(master=frame_predict,text='Loss')
 loss_name.pack()
 def get_loss(choice):
     global loss
     loss = choice
-
+# option of loss function
 loss_menu = tk.CTkOptionMenu(frame_predict, values=['mean_squared_error','mean_absolute_error',
                                              'mean_absolute_percentage_error',
                                              'mean_squared_logarithmic_error'],
                                          command=get_loss)
 loss_menu.pack()
 
+# Batch size label
+# Function to get batch size
 def get_batch_size(value):
     global batch_size
-    batch_size = np.round(value)
+    batch_size =int(np.round(value))
     var_batch.set('Batch_size '+str(batch_size))
-
-
+# Label
 batch_size_label = tk.CTkLabel(master=frame_predict,textvariable=var_batch)
 batch_size_label.pack()
+# Silder
 batch_size_slider = tk.CTkSlider(frame_predict, from_=20, to=100, command=get_batch_size)
 batch_size_slider.pack()
+
+# Epochs Label
 def get_epochs(value):
     global epochs
-    epochs = np.round(value)
+    epochs =int(np.round(value))
     var_epoch.set('Epochs: '+str(epochs))
 
 epochs_label = tk.CTkLabel(master=frame_predict,textvariable=var_epoch)
@@ -359,7 +369,17 @@ def out():
 
 t = tk.CTkButton(master=frame_predict,command=lambda :out(),text="hitme")
 t.pack()
-
-frame_predict.grid(row=2,sticky='EW',columnspan = 2)
+def run_predict():
+    global optimizer,loss,epochs,batch_size, img_predict
+    temp.run(optimizer, loss, epochs, batch_size)
+    img = tk.CTkImage(light_image=Image.open('fig2.png'), size=(700, 500))
+    img_predict.configure(image=img)
+    img_predict.image = img
+begin = tk.CTkButton(master=frame_predict,text='Run',command=lambda :run_predict())
+begin.pack()
+img_pred = tk.CTkImage(light_image=Image.open('base.jpeg'),size=(700,500))
+img_predict = tk.CTkLabel(master=frame_predict,image=img_pred)
+img_predict.pack()
+frame_predict.pack()
 tab_display.grid(row=2,sticky='EW',columnspan = 2)
 window.mainloop()
