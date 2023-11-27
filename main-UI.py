@@ -6,6 +6,7 @@ import plotly.graph_objects  as plot
 import numpy as np
 from PIL import Image
 from tkcalendar import DateEntry
+import Predict_modul as prd
 
 # Set appearance
 import temp
@@ -312,6 +313,7 @@ var_batch.set('Batch_size: '+str(batch_size))
 var_epoch = StringVar()
 var_epoch.set('Epochs: '+ str(epochs))
 
+
 # Label Optimizer
 # Label
 optimizer_name = tk.CTkLabel(master=frame_predict,text='Optimizer')
@@ -369,9 +371,12 @@ def out():
 
 t = tk.CTkButton(master=frame_predict,command=lambda :out(),text="hitme")
 t.pack()
+
 def run_predict():
     global optimizer,loss,epochs,batch_size, img_predict
-    temp.run(optimizer, loss, epochs, batch_size)
+    cur_run = prd.LSTMclass(df,optimizer,loss,5,batch_size,3,True)
+    cur_run.run()
+    #temp.run(optimizer, loss, epochs, batch_size)
     img = tk.CTkImage(light_image=Image.open('fig2.png'), size=(700, 500))
     img_predict.configure(image=img)
     img_predict.image = img
