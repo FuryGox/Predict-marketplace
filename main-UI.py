@@ -7,10 +7,9 @@ import numpy as np
 from PIL import Image
 from tkcalendar import DateEntry
 import Predict_modul as prd
+import os
 
 # Set appearance
-import temp
-
 tk.set_appearance_mode('dark')
 tk.set_default_color_theme('blue')
 
@@ -192,11 +191,15 @@ def show_input_plot_interactive(df):
                                                 open=df['Open'],
                                                 high=df['High'],
                                                 low=df['Low'],
-                                                close=df['Price']),
+                                                close=df['Price'],
+                                                 name = 'Candlestick'),
 
-                                plot.Line(x = df['Date'],
+
+                                plot.Scatter(x = df['Date'],
                                           y = df['Price'],
-                                          line=dict(color='#41cdf0'))])
+                                          name = 'Price',
+                                          visible='legendonly',
+                                          line=dict(color='#3b24d1'))])
         fig.update_layout(xaxis_rangeslider_visible=False,title_text = "")
         fig.show()
     except Exception as e:
@@ -277,9 +280,9 @@ def show_input_plot_img(df):
                                                  )])
         fig.update_layout(xaxis_rangeslider_visible=False)
 
-        fig.write_image('fig.jpeg')
+        fig.write_image('fig1.jpeg')
         global img
-        img = tk.CTkImage(light_image=Image.open('fig.jpeg'),size=(700, 500))
+        img = tk.CTkImage(light_image=Image.open('fig1.jpeg'),size=(700, 500))
         img_label.configure(image=img)
         img_label.image = img
     except Exception as e:
@@ -308,6 +311,7 @@ optimizer ='adam'
 loss = 'mean_squared_error'
 batch_size = 20
 epochs = 20
+fig_state = tk.IntVar()
 var_batch = StringVar()
 var_batch.set('Batch_size: '+str(batch_size))
 var_epoch = StringVar()
@@ -355,6 +359,9 @@ batch_size_label.pack()
 batch_size_slider = tk.CTkSlider(frame_predict, from_=20, to=100, command=get_batch_size)
 batch_size_slider.pack()
 
+# Show plot
+checkbox_plot = tk.CTkCheckBox(master=frame_predict, variable=fig_state, onvalue=1,offvalue=0)
+checkbox_plot.pack()
 # Epochs Label
 def get_epochs(value):
     global epochs
@@ -363,7 +370,7 @@ def get_epochs(value):
 
 epochs_label = tk.CTkLabel(master=frame_predict,textvariable=var_epoch)
 epochs_label.pack()
-epochs_slider = tk.CTkSlider(frame_predict, from_=20, to=100, command=get_epochs)
+epochs_slider = tk.CTkSlider(frame_predict, from_=1, to=200, command=get_epochs)
 epochs_slider.pack()
 def out():
     global loss,optimizer,batch_size,epochs
@@ -373,11 +380,13 @@ t = tk.CTkButton(master=frame_predict,command=lambda :out(),text="hitme")
 t.pack()
 
 def run_predict():
-    global optimizer,loss,epochs,batch_size, img_predict
-    cur_run = prd.LSTMclass(df,optimizer,loss,5,batch_size,3,True)
+    global optimizer,loss,epochs,batch_size, img_predict,fig_state
+
+
+    cur_run = prd.LSTMclass(df,optimizer,loss,epochs,batch_size,3,bool(fig_state))
     cur_run.run()
     #temp.run(optimizer, loss, epochs, batch_size)
-    img = tk.CTkImage(light_image=Image.open('fig2.png'), size=(700, 500))
+    img = tk.CTkImage(light_image=Image.open('fig2.jpeg'), size=(700, 500))
     img_predict.configure(image=img)
     img_predict.image = img
 begin = tk.CTkButton(master=frame_predict,text='Run',command=lambda :run_predict())
@@ -387,4 +396,18 @@ img_predict = tk.CTkLabel(master=frame_predict,image=img_pred)
 img_predict.pack()
 frame_predict.pack()
 tab_display.grid(row=2,sticky='EW',columnspan = 2)
+
+def on_closing():
+    if messagebox.askokcancel("Quit", "Do you want to quit?"):
+        path_1 = os.getcwd() + '\\fig1.jpeg'
+        path_2 = os.getcwd() + '\\fig2.jpeg'
+
+        if os.path.exists(path_1):
+            os.remove(path_1)
+        if os.path.exists(path_2):
+            os.remove(path_2)
+        window.destroy()
+
+
+window.protocol("WM_DELETE_WINDOW", on_closing)
 window.mainloop()

@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-name = 'Bitcoin Historical Data.csv'
+name = 'Bitcoin  Data.csv'
 
 def convert_M(x):
     if x.endswith("M"):

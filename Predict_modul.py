@@ -2,7 +2,7 @@ import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, LSTM
-import plotly.express as pl
+import plotly.graph_objects  as plot
 import numpy as np
 
 
@@ -21,7 +21,7 @@ class LSTMclass:
         self.epoch = epoch
         self.batch = batch_size
         self.layer = layer
-        self.fig_state : bool = fig_state
+        self.fig_state = fig_state
         self.test_end = self.df.iloc[0]["Date"]
         self.test_start = self.df.iloc[60]["Date"]
 
@@ -52,12 +52,17 @@ class LSTMclass:
         # build model
         model = Sequential()
 
+        # Input layer
         model.add(LSTM(units=50, return_sequences=True, input_shape=(x_train.shape[1], 1)))
+        # Hidden layer
+
         model.add(Dropout(0.2))
         model.add(LSTM(units=50, return_sequences=True))
         model.add(Dropout(0.2))
         model.add(LSTM(units=50))
         model.add(Dropout(0.2))
+
+        #output layer
         model.add(Dense(units=1))
 
         # dicided what optimizer and loss function will be use
@@ -108,10 +113,10 @@ class LSTMclass:
             actual_prices_float.append(float(i))
 
         data_plot = [to_list2d(prediction_prices), actual_prices_float]
-        fig = pl.line(y=data_plot, labels={"prediction_prices", "Actual"})
+        fig = plot.Figure([plot.Scatter(y=actual_prices_float),plot.Scatter(y = to_list2d(prediction_prices),name = "Line")])
         if self.fig_state:
             fig.show()
         else:
-            fig.write_image("fig2.png")
+            fig.write_image("fig2.jpeg")
 
 
