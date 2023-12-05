@@ -1,17 +1,73 @@
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
+import keras
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, LSTM
 import plotly.graph_objects  as plot
 import numpy as np
-
+import threading
 
 def to_list2d(df):
     d = []
     for i in df:
         d.append(i[0])
     return d
+class CustomCallback(keras.callbacks.Callback):
+    def on_train_begin(self, logs=None):
+        keys = list(logs.keys())
+        print("Starting training; got log keys: {}".format(keys))
 
+    def on_train_end(self, logs=None):
+        keys = list(logs.keys())
+        print("Stop training; got log keys: {}".format(keys))
+
+    def on_epoch_begin(self, epoch, logs=None):
+        keys = list(logs.keys())
+        print("Start epoch {} of training; got log keys: {}".format(epoch, keys))
+
+    def on_epoch_end(self, epoch, logs=None):
+        keys = list(logs.keys())
+        print("End epoch {} of training; got log keys: {}".format(epoch, keys))
+
+    def on_test_begin(self, logs=None):
+        keys = list(logs.keys())
+        print("Start testing; got log keys: {}".format(keys))
+
+    def on_test_end(self, logs=None):
+        keys = list(logs.keys())
+        print("Stop testing; got log keys: {}".format(keys))
+
+    def on_predict_begin(self, logs=None):
+        keys = list(logs.keys())
+        print("Start predicting; got log keys: {}".format(keys))
+
+    def on_predict_end(self, logs=None):
+        keys = list(logs.keys())
+        print("Stop predicting; got log keys: {}".format(keys))
+
+    def on_train_batch_begin(self, batch, logs=None):
+        keys = list(logs.keys())
+        print("...Training: start of batch {}; got log keys: {}".format(batch, keys))
+
+    def on_train_batch_end(self, batch, logs=None):
+        keys = list(logs.keys())
+        print("...Training: end of batch {}; got log keys: {}".format(batch, keys))
+
+    def on_test_batch_begin(self, batch, logs=None):
+        keys = list(logs.keys())
+        print("...Evaluating: start of batch {}; got log keys: {}".format(batch, keys))
+
+    def on_test_batch_end(self, batch, logs=None):
+        keys = list(logs.keys())
+        print("...Evaluating: end of batch {}; got log keys: {}".format(batch, keys))
+
+    def on_predict_batch_begin(self, batch, logs=None):
+        keys = list(logs.keys())
+        print("...Predicting: start of batch {}; got log keys: {}".format(batch, keys))
+
+    def on_predict_batch_end(self, batch, logs=None):
+        keys = list(logs.keys())
+        print("...Predicting: end of batch {}; got log keys: {}".format(batch, keys))
 
 class LSTMclass:
     def __init__(self,data,optimizer,loss,epoch,batch_size,layer,fig_state):
@@ -66,10 +122,10 @@ class LSTMclass:
         model.add(Dense(units=1))
 
         # dicided what optimizer and loss function will be use
-        model.compile(optimizer=self.optimizer, loss=self.loss)
+        model.compile(optimizer=self.optimizer, loss=self.loss )
 
         # Begin training
-        model.fit(x_train, y_train, epochs=self.epoch, batch_size=self.batch)
+        model.fit(x_train, y_train, epochs=self.epoch, batch_size=self.batch ,callbacks=[CustomCallback()])
 
         # Prepare test data
         test_data = self.df.loc[(self.df['Date'] > self.test_start)]
@@ -113,10 +169,9 @@ class LSTMclass:
             actual_prices_float.append(float(i))
 
         data_plot = [to_list2d(prediction_prices), actual_prices_float]
-        fig = plot.Figure([plot.Scatter(y=actual_prices_float),plot.Scatter(y = to_list2d(prediction_prices),name = "Line")])
-        if self.fig_state:
+        fig = plot.Figure([plot.Scatter(y=actual_prices_float,name = "Real_values"),plot.Scatter(y = to_list2d(prediction_prices),name = "Predict")])
+        if self.fig_state == 1:
             fig.show()
         else:
             fig.write_image("fig2.jpeg")
-
 
