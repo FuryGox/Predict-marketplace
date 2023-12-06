@@ -11,6 +11,9 @@ import keras
 from sklearn.preprocessing import MinMaxScaler
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, LSTM
+import threading
+
+
 
 class CustomCallback(keras.callbacks.Callback):
     def on_train_begin(self, logs=None):
@@ -23,6 +26,8 @@ class CustomCallback(keras.callbacks.Callback):
 
     def on_epoch_begin(self, epoch, logs=None):
         keys = list(logs.keys())
+        global epoch_in
+        epoch_in = epoch
         print("Start epoch {} of training; got log keys: {}".format(epoch, keys))
 
     def on_epoch_end(self, epoch, logs=None):
@@ -454,6 +459,7 @@ optimizer ='adam'
 loss = 'mean_squared_error'
 batch_size = 20
 epochs = 20
+epoch_in = tk.IntVar()
 fig_state = tk.IntVar()
 var_batch = StringVar()
 var_batch.set('Batch_size: '+str(batch_size))
@@ -520,17 +526,26 @@ def run_predict():
     global optimizer, loss, epochs, batch_size, img_predict, fig_state
 
     cur_run = LSTMclass(df, optimizer, loss, epochs, batch_size, 3, fig_state.get())
-    cur_run.run()
+    global predict_thread
+    predict_thread = threading.Thread(target = cur_run.run())
+    predict_thread.daemon = True
+    predict_thread.start()
     # temp.run(optimizer, loss, epochs, batch_size)
     if fig_state.get() == 0:
         img = tk.CTkImage(light_image=Image.open('fig2.jpeg'), size=(700, 500))
         img_predict.configure(image=img)
         img_predict.image = img
-
+    window.after(5,check_thread())
+def check_thread():
+    if predict_thread.is_alive():
+        window.after(10, check_thread())
+    else:
+        pass
 
 begin = tk.CTkButton(master=frame_predict,text='Run',command=lambda : run_predict())
 begin.grid(column = 0,row=9)
-
+Processbar = tk.CTkProgressBar(master=frame_predict, mode="indeterminate" )
+Processbar.grid(column = 0, row=10)
 
 img_pred = tk.CTkImage(light_image=Image.open('base.jpeg'),size=(700,500))
 img_predict = tk.CTkLabel(master=frame_predict,image=img_pred)
