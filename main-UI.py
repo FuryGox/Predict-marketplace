@@ -1,21 +1,19 @@
 import os
-import tkinter.ttk
-
+import yfinance as yf
 import numpy as np
 import pandas as pd
-import investiny as inv
 import plotly.graph_objects  as plot
+
+import tkinter.ttk
 from tkinter import ttk, filedialog, messagebox, Tk, StringVar
 import customtkinter as tk
 from PIL import Image
 from tkcalendar import DateEntry
+
 import keras
 from sklearn.preprocessing import MinMaxScaler
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, LSTM
-import threading
-
-
 
 
 class CustomCallback(keras.callbacks.Callback):
@@ -205,6 +203,21 @@ def replace_comma(df):
 
     return df
 
+def get_stock_data(ticker, start_date, end_date):
+    # Lấy dữ liệu từ yfinance
+    stock_data = yf.download(ticker, start=start_date, end=end_date)
+
+    # Chọn các cột quan trọng
+    stock_data = stock_data[['Open', 'High', 'Low', 'Close', 'Volume']]
+
+    # Đổi tên các cột để phản ánh định dạng bạn mong muốn
+    stock_data.columns = ['Open', 'High', 'Low', 'Price', 'Vol']
+
+    # Tạo cột 'Date' từ index
+    stock_data.reset_index(inplace=True)
+
+    return stock_data
+
 
 
 # init window frame
@@ -244,10 +257,10 @@ date_start = cal_start.get_date()
 date_end = cal_end.get_date()
 def get_date_from_cal():
     global date_start,date_end,df
-    date_start = date_start.strftime("%m/%d/%Y")
-    date_end = date_end.strftime("%m/%d/%Y")
+    date_start = date_start.strftime("%Y-%m-%d")
+    date_end = date_end.strftime("%Y-%m-%d")
     try:
-        df = inv.historical_data(investing_id=input_label_name.get(1.0, "end-1c"),from_date=date_start,to_date=date_end)
+        df = get_stock_data(input_label_name.get(1.0, "end-1c"),date_start,date_end)
         output_resurt.configure(text="Get data success.", text_color='#21ed28')
     except Exception as e:
         output_resurt.configure(text = ("Get data failure. " + str(e)),text_color='#e8132b' )
