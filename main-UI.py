@@ -1,4 +1,6 @@
 import os
+import tkinter.ttk
+
 import numpy as np
 import pandas as pd
 import investiny as inv
@@ -15,6 +17,7 @@ import threading
 
 
 
+
 class CustomCallback(keras.callbacks.Callback):
     def on_train_begin(self, logs=None):
         keys = list(logs.keys())
@@ -26,13 +29,13 @@ class CustomCallback(keras.callbacks.Callback):
 
     def on_epoch_begin(self, epoch, logs=None):
         keys = list(logs.keys())
-        global epoch_in
-        epoch_in = epoch
         print("Start epoch {} of training; got log keys: {}".format(epoch, keys))
 
     def on_epoch_end(self, epoch, logs=None):
         keys = list(logs.keys())
-        print("End epoch {} of training; got log keys: {}".format(epoch, keys))
+        Processbar['value'] += 1
+        window.update_idletasks()
+        print("\nEnd epoch {} of training; got log keys: {}".format(epoch, keys))
 
     def on_test_begin(self, logs=None):
         keys = list(logs.keys())
@@ -50,17 +53,18 @@ class CustomCallback(keras.callbacks.Callback):
         keys = list(logs.keys())
         print("Stop predicting; got log keys: {}".format(keys))
 
-
+    def on_batch_end(self, batch, logs=None):
+        window.update()
 
 class LSTMclass:
-    def __init__(self,data,optimizer,loss,epoch,batch_size,layer,fig_state):
+    def __init__(self,data,opt,los,epo,batch_si,layer,fig_stat):
         self.df = data
-        self.optimizer = optimizer
-        self.loss = loss
-        self.epoch = epoch
-        self.batch = batch_size
+        self.optimizer = opt
+        self.loss = los
+        self.epoch = epo
+        self.batch = batch_si
         self.layer = layer
-        self.fig_state = fig_state
+        self.fig_state = fig_stat
         self.test_end = self.df.iloc[0]["Date"]
         self.test_start = self.df.iloc[60]["Date"]
 
@@ -157,6 +161,7 @@ class LSTMclass:
             fig.show()
         else:
             fig.write_image("fig2.jpeg")
+        return prediction
 
 
 
@@ -459,13 +464,13 @@ optimizer ='adam'
 loss = 'mean_squared_error'
 batch_size = 20
 epochs = 20
-epoch_in = tk.IntVar()
 fig_state = tk.IntVar()
 var_batch = StringVar()
 var_batch.set('Batch_size: '+str(batch_size))
 var_epoch = StringVar()
 var_epoch.set('Epochs: '+ str(epochs))
-
+predict_price = StringVar()
+predict_price.set("Predict price : ")
 
 # Label Optimizer
 # Label
@@ -524,28 +529,25 @@ checkbox_plot = tk.CTkCheckBox(master=frame_predict, variable=fig_state, onvalue
 checkbox_plot.grid(column = 0, row = 8)
 def run_predict():
     global optimizer, loss, epochs, batch_size, img_predict, fig_state
-
+    Processbar.configure(maximum = epochs)
     cur_run = LSTMclass(df, optimizer, loss, epochs, batch_size, 3, fig_state.get())
-    global predict_thread
-    predict_thread = threading.Thread(target = cur_run.run())
-    predict_thread.daemon = True
-    predict_thread.start()
+
+    values = cur_run.run()
+    predict_price.set("Predict values : " + str(values))
+    
     # temp.run(optimizer, loss, epochs, batch_size)
     if fig_state.get() == 0:
         img = tk.CTkImage(light_image=Image.open('fig2.jpeg'), size=(700, 500))
         img_predict.configure(image=img)
         img_predict.image = img
-    window.after(5,check_thread())
-def check_thread():
-    if predict_thread.is_alive():
-        window.after(10, check_thread())
-    else:
-        pass
 
 begin = tk.CTkButton(master=frame_predict,text='Run',command=lambda : run_predict())
 begin.grid(column = 0,row=9)
-Processbar = tk.CTkProgressBar(master=frame_predict, mode="indeterminate" )
+Processbar = tkinter.ttk.Progressbar(master=frame_predict ,orient = tkinter.HORIZONTAL,length = 300, mode = 'determinate' ,maximum = epochs)
 Processbar.grid(column = 0, row=10)
+
+Predict_price = tk.CTkLabel(master=frame_predict,textvariable=predict_price)
+Predict_price.grid(column =0 , row = 11)
 
 img_pred = tk.CTkImage(light_image=Image.open('base.jpeg'),size=(700,500))
 img_predict = tk.CTkLabel(master=frame_predict,image=img_pred)
@@ -567,5 +569,4 @@ def on_closing():
 
 window.protocol("WM_DELETE_WINDOW", on_closing)
 window.mainloop()
-
 
