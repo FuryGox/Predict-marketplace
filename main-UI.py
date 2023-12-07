@@ -55,13 +55,14 @@ class CustomCallback(keras.callbacks.Callback):
         window.update()
 
 class LSTMclass:
-    def __init__(self,data,opt,los,epo,batch_si,layer,fig_stat):
+    def __init__(self,data,opt,los,epo,batch_si,nlayer,fig_stat,nunit):
         self.df = data
         self.optimizer = opt
         self.loss = los
         self.epoch = epo
         self.batch = batch_si
-        self.layer = layer
+        self.layer = nlayer
+        self.unit_p_layer = int(nunit)
         self.fig_state = fig_stat
         self.test_end = self.df.iloc[0]["Date"]
         self.test_start = self.df.iloc[60]["Date"]
@@ -95,15 +96,17 @@ class LSTMclass:
 
         # Input layer
         model.add(LSTM(units=50, return_sequences=True, input_shape=(x_train.shape[1], 1)))
-        # Hidden layer
-
         model.add(Dropout(0.2))
         model.add(LSTM(units=50, return_sequences=True))
         model.add(Dropout(0.2))
-        model.add(LSTM(units=50))
-        model.add(Dropout(0.2))
+        # Hidden layer
+        for i in range(0,self.layer):
+            model.add(LSTM(units=self.unit_p_layer, return_sequences=True))
+            model.add(Dropout(0.2))
 
         #output layer
+        model.add(LSTM(units=20))
+        model.add(Dropout(0.2))
         model.add(Dense(units=1))
 
         # dicided what optimizer and loss function will be use
@@ -154,6 +157,8 @@ class LSTMclass:
             actual_prices_float.append(float(i))
 
         data_plot = [to_list2d(prediction_prices), actual_prices_float]
+        img_predict.configure(text="Loading...")
+        window.update_idletasks()
         fig = plot.Figure([plot.Scatter(y=actual_prices_float,name = "Real_values"),plot.Scatter(y = to_list2d(prediction_prices),name = "Predict")])
         if self.fig_state == 1:
             fig.show()
@@ -477,11 +482,17 @@ optimizer ='adam'
 loss = 'mean_squared_error'
 batch_size = 20
 epochs = 20
+layer = 2
+unit = 20
 fig_state = tk.IntVar()
 var_batch = StringVar()
 var_batch.set('Batch_size: '+str(batch_size))
 var_epoch = StringVar()
 var_epoch.set('Epochs: '+ str(epochs))
+var_layer = StringVar()
+var_layer.set('Number of hiden layer: '+ str(layer))
+var_unit = StringVar()
+var_unit.set('Number of hiden layer: '+ str(layer))
 predict_price = StringVar()
 predict_price.set("Predict price : ")
 
@@ -536,14 +547,37 @@ epochs_label = tk.CTkLabel(master=frame_predict,textvariable=var_epoch)
 epochs_label.grid(column = 0, row = 6)
 epochs_slider = tk.CTkSlider(frame_predict, from_=1, to=200, command=get_epochs ,width=500)
 epochs_slider.grid(column = 0, row = 7)
+# Layer config
+
+def get_layer(value):
+    global layer
+    layer =int(np.round(value))
+    var_layer.set('Number of hiden layer: '+ str(layer))
+
+layer_label = tk.CTkLabel(master=frame_predict,textvariable=var_layer)
+layer_label.grid(column = 0, row = 8)
+layer_slider = tk.CTkSlider(frame_predict, from_=1, to=15, command=get_layer ,width=500)
+layer_slider.grid(column = 0, row = 9)
+# Unit config
+def get_unit(value):
+    global unit
+    unit =int(np.round(value))
+    var_unit.set('Number of unit for train: '+ str(unit))
+
+unit_label = tk.CTkLabel(master=frame_predict,textvariable=var_unit)
+unit_label.grid(column = 0, row = 10)
+
+unit_textbox = tk.CTkSlider(frame_predict, from_=1, to=100, command=get_unit ,width=500)
+unit_textbox.grid(column = 0, row = 11)
 
 # Show plot
 checkbox_plot = tk.CTkCheckBox(master=frame_predict, variable=fig_state, onvalue=1,offvalue=0, text="Show fig")
-checkbox_plot.grid(column = 0, row = 8)
+checkbox_plot.grid(column = 0, row = 12)
 def run_predict():
-    global optimizer, loss, epochs, batch_size, img_predict, fig_state
+    global optimizer, loss, epochs, batch_size, img_predict, fig_state,layer ,unit
     Processbar.configure(maximum = epochs)
-    cur_run = LSTMclass(df, optimizer, loss, epochs, batch_size, 3, fig_state.get())
+    Processbar['value'] = 0
+    cur_run = LSTMclass(df, optimizer, loss, epochs, batch_size, layer, fig_state.get(),unit)
 
     values = cur_run.run()
     predict_price.set("Predict values : " + str(values))
@@ -555,16 +589,16 @@ def run_predict():
         img_predict.image = img
 
 begin = tk.CTkButton(master=frame_predict,text='Run',command=lambda : run_predict())
-begin.grid(column = 0,row=9)
+begin.grid(column = 0,row=13)
 Processbar = tkinter.ttk.Progressbar(master=frame_predict ,orient = tkinter.HORIZONTAL,length = 300, mode = 'determinate' ,maximum = epochs)
-Processbar.grid(column = 0, row=10)
+Processbar.grid(column = 0, row=14)
 
 Predict_price = tk.CTkLabel(master=frame_predict,textvariable=predict_price)
-Predict_price.grid(column =0 , row = 11)
+Predict_price.grid(column =0 , row = 15)
 
 img_pred = tk.CTkImage(light_image=Image.open('base.jpeg'),size=(700,500))
-img_predict = tk.CTkLabel(master=frame_predict,image=img_pred)
-img_predict.grid(column = 1, row = 0, rowspan = 18)
+img_predict = tk.CTkLabel(master=frame_predict,image=img_pred, text="Notthing to show")
+img_predict.grid(column = 1, row = 0, rowspan = 26)
 frame_predict.pack()
 tab_display.grid(row=2,sticky='EW',columnspan = 2)
 
