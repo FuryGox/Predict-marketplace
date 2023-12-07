@@ -534,7 +534,7 @@ def get_batch_size(value):
 batch_size_label = tk.CTkLabel(master=frame_predict,textvariable=var_batch)
 batch_size_label.grid(column = 0, row = 4)
 # Silder
-batch_size_slider = tk.CTkSlider(frame_predict, from_=20, to=100, command=get_batch_size ,width=500)
+batch_size_slider = tk.CTkSlider(frame_predict, from_=20, to=200, command=get_batch_size ,width=500)
 batch_size_slider.grid(column = 0, row = 5)
 
 # Epochs Label
@@ -545,7 +545,7 @@ def get_epochs(value):
 
 epochs_label = tk.CTkLabel(master=frame_predict,textvariable=var_epoch)
 epochs_label.grid(column = 0, row = 6)
-epochs_slider = tk.CTkSlider(frame_predict, from_=1, to=200, command=get_epochs ,width=500)
+epochs_slider = tk.CTkSlider(frame_predict, from_=1, to=100, command=get_epochs ,width=500)
 epochs_slider.grid(column = 0, row = 7)
 # Layer config
 
@@ -567,7 +567,7 @@ def get_unit(value):
 unit_label = tk.CTkLabel(master=frame_predict,textvariable=var_unit)
 unit_label.grid(column = 0, row = 10)
 
-unit_textbox = tk.CTkSlider(frame_predict, from_=1, to=100, command=get_unit ,width=500)
+unit_textbox = tk.CTkSlider(frame_predict, from_=1, to=200, command=get_unit ,width=500)
 unit_textbox.grid(column = 0, row = 11)
 
 # Show plot
