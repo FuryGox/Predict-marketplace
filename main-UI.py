@@ -169,9 +169,6 @@ class LSTMclass:
 
 
 
-# Set appearance
-tk.set_appearance_mode('dark')
-tk.set_default_color_theme('blue')
 
 # Covert mark M ,K ,B
 def convert_mark(x):
@@ -223,10 +220,13 @@ def get_stock_data(ticker, start_date, end_date):
 
     return stock_data
 
-
+# Set appearance
+tk.set_appearance_mode('dark')
+tk.set_default_color_theme('blue')
 
 # init window frame
 window = tk.CTk()
+
 df = pd.DataFrame
 name = ''
 
@@ -241,13 +241,14 @@ window.columnconfigure(1,weight=2)
 # frame input
 frame_input = tk.CTkFrame(master=window)
 
+# Token
 label_name = tk.CTkLabel(master=frame_input,text="ID")
 label_name.pack()
 
 input_label_name = tk.CTkTextbox(master=frame_input,height=20)
 input_label_name.pack()
 
-
+# Date
 cal_start = DateEntry(frame_input, width=12, year=2019, month=6, day=22,
 background='darkblue', foreground='white', borderwidth=2)
 cal_start.pack(padx=10, pady=10)
@@ -255,11 +256,11 @@ cal_start.pack(padx=10, pady=10)
 cal_end = DateEntry(frame_input, width=12, year=2022, month=1, day=1,
 background='darkblue', foreground='white', borderwidth=2)
 cal_end.pack(padx=10, pady=10)
-output_resurt = tk.CTkLabel(master=frame_input,text='Watting..')
-
+output_resurt = tk.CTkLabel(master=frame_input,text='Watting...')
 
 date_start = cal_start.get_date()
 date_end = cal_end.get_date()
+
 def get_date_from_cal():
     global date_start,date_end,df
     date_start = date_start.strftime("%Y-%m-%d")
@@ -613,7 +614,7 @@ def on_closing():
             os.remove(path_2)
         window.destroy()
 
-
+# Closing window
 window.protocol("WM_DELETE_WINDOW", on_closing)
 window.mainloop()
 
