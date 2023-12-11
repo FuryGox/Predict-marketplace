@@ -68,7 +68,7 @@ class LSTMclass:
         self.test_start = self.df.iloc[60]["Date"]
 
     def run(self):
-        # Add new column ['Tomorrow'] - Note: Make no impact
+        # Add new column ['Tomorrow']
         self.df["Tomorrow"] = self.df["Price"].shift(-1)
 
         # prep data for training
@@ -102,10 +102,10 @@ class LSTMclass:
         # Hidden layer
         for i in range(0,self.layer):
             model.add(LSTM(units=self.unit_p_layer, return_sequences=True))
-            model.add(Dropout(0.2))
+            model.add(Dropout(0.1))
 
         #output layer
-        model.add(LSTM(units=20))
+        model.add(LSTM(units=10))
         model.add(Dropout(0.2))
         model.add(Dense(units=1))
 
@@ -206,16 +206,9 @@ def replace_comma(df):
     return df
 
 def get_stock_data(ticker, start_date, end_date):
-    # Lấy dữ liệu từ yfinance
     stock_data = yf.download(ticker, start=start_date, end=end_date)
-
-    # Chọn các cột quan trọng
     stock_data = stock_data[['Open', 'High', 'Low', 'Close', 'Volume']]
-
-    # Đổi tên các cột để phản ánh định dạng bạn mong muốn
     stock_data.columns = ['Open', 'High', 'Low', 'Price', 'Vol']
-
-    # Tạo cột 'Date' từ index
     stock_data.reset_index(inplace=True)
 
     return stock_data
@@ -379,42 +372,6 @@ def show_input_plot_interactive(df):
         fig.show()
     except Exception as e:
         print(str(e))
-    """
-    figure = plt.Figure(figsize=(10, 4), dpi=100)
-    st = figure.suptitle("suptitle", fontsize="x-large")
-    df['Date'] = pd.to_datetime(df['Date'])
-
-    # Plot for ['Open'] values
-    ax1 = figure.add_subplot(141)
-    ax1.plot(df['Date'],df['Open'].tolist(), color = '#1bd152')
-    ax1.set_title('ax1')
-
-    # Plot for ['Price'] values
-    ax2 = figure.add_subplot(142)
-    ax2.plot(df['Date'],df['Price'].tolist(),color= '#1f13f2')
-    ax2.set_title('ax2')
-
-    # Plot for ['High'] values
-    ax3 = figure.add_subplot(143)
-    ax3.plot(df['Date'],df['High'].tolist(),color = '#db8b2a')
-    ax3.set_title('ax3')
-
-    # Plot for ['Low'] values
-    ax4 = figure.add_subplot(144)
-    ax4.plot(df['Date'],df['Low'].tolist(), color = '#222fe3')
-    ax4.set_title('ax4')
-
-    st.set_y(0.95)
-    figure.tight_layout()
-    figure.subplots_adjust(top=0.85)
-    scatter3 = FigureCanvasTkAgg(figure, frame_display)
-    scatter3.draw()
-    scatter3.get_tk_widget().pack(fill='x')
-    toolbar = NavigationToolbar2Tk(scatter3,frame_display)
-    toolbar.update()
-    scatter3.get_tk_widget().pack()
-    """
-
 
 # Tab
 tab_display = tk.CTkTabview(master=window)
@@ -493,7 +450,7 @@ var_epoch.set('Epochs: '+ str(epochs))
 var_layer = StringVar()
 var_layer.set('Number of hiden layer: '+ str(layer))
 var_unit = StringVar()
-var_unit.set('Number of hiden layer: '+ str(layer))
+var_unit.set('Number of unit for train: '+ str(unit))
 predict_price = StringVar()
 predict_price.set("Predict price : ")
 
@@ -572,7 +529,7 @@ unit_textbox = tk.CTkSlider(frame_predict, from_=1, to=200, command=get_unit ,wi
 unit_textbox.grid(column = 0, row = 11)
 
 # Show plot
-checkbox_plot = tk.CTkCheckBox(master=frame_predict, variable=fig_state, onvalue=1,offvalue=0, text="Show fig")
+checkbox_plot = tk.CTkCheckBox(master=frame_predict, variable=fig_state, onvalue=1,offvalue=0, text="Show interative figure")
 checkbox_plot.grid(column = 0, row = 12)
 def run_predict():
     global optimizer, loss, epochs, batch_size, img_predict, fig_state,layer ,unit
