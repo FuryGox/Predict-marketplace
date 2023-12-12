@@ -242,10 +242,14 @@ input_label_name = tk.CTkTextbox(master=frame_input,height=20)
 input_label_name.pack()
 
 # Date
+label_cal_start = tk.CTkLabel(master=frame_input,text="Date start")
+label_cal_start.pack()
 cal_start = DateEntry(frame_input, width=12, year=2019, month=6, day=22,
 background='darkblue', foreground='white', borderwidth=2)
 cal_start.pack(padx=10, pady=10)
 
+label_cal_end = tk.CTkLabel(master=frame_input,text="Date end")
+label_cal_end.pack()
 cal_end = DateEntry(frame_input, width=12, year=2022, month=1, day=1,
 background='darkblue', foreground='white', borderwidth=2)
 cal_end.pack(padx=10, pady=10)
